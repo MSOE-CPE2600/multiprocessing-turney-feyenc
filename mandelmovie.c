@@ -11,8 +11,6 @@
  * @date 11/14/2025
  */
 
-// todo: makefile
-
 #include <wait.h>
 #include <stdlib.h>
 #include <unistd.h>
