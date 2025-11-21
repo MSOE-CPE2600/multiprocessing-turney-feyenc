@@ -28,7 +28,7 @@ Compute an entire Mandelbrot image, writing each point to the given bitmap.
 Scale the image to the range (xmin-xmax,ymin-ymax), limiting iterations to "max"
 */
 
-void compute_image(imgRawImage* img, double xmin, double xmax, double ymin, double ymax, int max );
+void compute_image(imgRawImage* img, double xmin, double xmax, double ymin, double ymax, int max, int num_threads);
 
 /*
 Convert a iteration number to a color.

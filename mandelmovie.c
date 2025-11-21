@@ -20,6 +20,7 @@
 #include <sys/mman.h>
 #include "jpegrw.h"
 #include "mandel_lib.h"
+#include "thread_arg.h"
 
 /**
  * @brief creates a frame
@@ -31,7 +32,7 @@
  * @param max
  * @param outfile
  */
-void make_frame(const double xcenter, const double ycenter, const unsigned int image_width, const unsigned int image_height, const double xscale, const int max, const char *outfile);
+void make_frame(const double xcenter, const double ycenter, const unsigned int image_width, const unsigned int image_height, const double xscale, const int max, const char *outfile, int num_threads);
 void show_help();
 
 int main(int argc, char *argv[]) {
@@ -41,11 +42,12 @@ int main(int argc, char *argv[]) {
     int image_width = 1000;
     int image_height = 1000;
     int max = 1000;
+    int num_threads = 1;
     char c;
     unsigned int max_procs = 100;
 
     // gets arguments
-    while((c = getopt(argc,argv,"x:y:s:W:H:m:o:p:h")) != -1) {
+    while((c = getopt(argc,argv,"x:y:s:W:H:m:o:p:t:h")) != -1) {
 		switch(c) 
 		{
 			case 'x':
@@ -68,6 +70,12 @@ int main(int argc, char *argv[]) {
 				break;
 			case 'p':
 				max_procs = atoi(optarg);
+				break;
+			case 't':
+				int thread_count = atoi(optarg);
+                if (thread_count >= 1 && thread_count <= MAX_THREADS) {
+                    num_threads = thread_count;
+                }
 				break;
 			case 'h':
 				show_help();
@@ -103,7 +111,7 @@ int main(int argc, char *argv[]) {
             char name[25];
 
             sprintf(name, "mandelmovie%d.jpg", i);
-            make_frame(xcenter, ycenter, image_width, image_height, xscale - i / 25.0, max, name);
+            make_frame(xcenter, ycenter, image_width, image_height, xscale - i / 25.0, max, name, num_threads);
 
             sem_post(semaphore);
             exit(0);
@@ -124,7 +132,7 @@ int main(int argc, char *argv[]) {
     }
 }
 
-void make_frame(const double xcenter, const double ycenter, const unsigned int image_width, const unsigned int image_height, const double xscale, const int max, const char *outfile) {
+void make_frame(const double xcenter, const double ycenter, const unsigned int image_width, const unsigned int image_height, const double xscale, const int max, const char *outfile, int num_threads) {
     // Calculate y scale based on x scale (settable) and image sizes in X and Y (settable)
     double yscale = xscale / image_width * image_height;
 
@@ -138,7 +146,7 @@ void make_frame(const double xcenter, const double ycenter, const unsigned int i
     setImageCOLOR(img, 0);
 
     // Compute the Mandelbrot image
-    compute_image(img, xcenter-xscale/2, xcenter+xscale/2, ycenter-yscale/2, ycenter+yscale/2, max);
+    compute_image(img, xcenter-xscale/2, xcenter+xscale/2, ycenter-yscale/2, ycenter+yscale/2, max, num_threads);
 
     // Save the image in the stated file.
     storeJpegImageFile(img, outfile);
